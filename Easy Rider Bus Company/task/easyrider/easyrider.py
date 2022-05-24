@@ -11,8 +11,8 @@ def main():
     json_str = input()
     json_obj = json.loads(json_str)
     error_sum = 0
-    any_time_error = False
-    print("Arrival time test:")
+
+
     for o in json_obj:
         # print(o)
         if not (o.get("bus_id") is not None and type(o["bus_id"]) is int):
@@ -53,37 +53,57 @@ def main():
         else:
             buses[o["bus_id"]].append((o["stop_name"], o["stop_type"], o["a_time"]))
 
-
     # print(f"Type and required field validation: {error_sum} errors")
     # for k, v in errors.items():
     #     print(f"{k}: {v}")
-    for k, v in buses.items():
-        # print(f"{k}: {v}")
-        for i in range(len(v)-1):
-            if v[i][2] >= v[i+1][2]:
-                print(f"bus_id line {k}: wrong time on station {v[i+1][0]}")
-                any_time_error = True
-                break
 
-    if not any_time_error:
-        print("OK")
+    # for k, v in buses.items():
+    #         # print(f"{k}: {v}")
+    #         for i in range(len(v)-1):
+    #             if v[i][2] >= v[i+1][2]:
+    #                 print(f"bus_id line {k}: wrong time on station {v[i+1][0]}")
+    #                 any_time_error = True
+    #                 break
+
     # for k, v in buses.items():
     #     types = {x[1] for x in v}
     #     if (len({'S', 'F'}.intersection(types))) < 2:
     #         print(f"There is no start or end stop for the line: {k}")
     #         return
     #
-    # names = set()
-    # for k, v in buses.items():
-    #     names.update(v)
-    #
+    names = set()
+    any_time_error = False
+    for k, v in buses.items():
+        names.update(v)
+
+    # print(names)
     # start_stops = [stop[0] for stop in names if stop[1] == 'S']
     # end_stops = [stop[0] for stop in names if stop[1] == 'F']
-    # transfer = set()
-    # for first,second in itertools.combinations(buses.items(),2):
-    #     first = {f[0] for f in first[1] }
-    #     second = {f[0] for f in second[1] }
-    #     transfer.update(first.intersection(second))
+    transfer = set()
+    for first, second in itertools.combinations(buses.items(), 2):
+        first = {f[0] for f in first[1]}
+        second = {f[0] for f in second[1]}
+        transfer.update(first.intersection(second))
+
+    on_demand = set()
+
+    for k, v in buses.items():
+        # print(f"{k}: {v}")
+        if v[0][1] == 'O':
+            on_demand.add(v[0][0])
+
+        if v[-1][1] == 'O':
+            on_demand.add(v[-1][0])
+
+        for s in v:
+            if s[1] == 'O' and s[0] in transfer:
+                on_demand.add(s[0])
+
+    print("On demand stops test:")
+    if len(on_demand) == 0:
+        print("OK")
+    else:
+        print(f"Wrong stop type: {sorted(list(on_demand))}")
     #
     # print(f"Start stops: {len(start_stops)} {sorted(start_stops)}")
     # print(f"Transfer stops: {len(transfer)} {sorted(transfer)}")
